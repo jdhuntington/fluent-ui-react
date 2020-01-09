@@ -15,7 +15,7 @@ import {
 } from '@fluentui/react'
 import resolveStylesAndClasses from '@fluentui/react/src/utils/resolveStylesAndClasses'
 
-const useStyles = (displayName: string, options: any) => {
+const useStyles = (displayName: string | string[], options: any) => {
   const className = options.className || 'no-classname-🙉'
   const rtl = options.rtl || false
   const props = options.mapPropsToStyles()
@@ -25,21 +25,28 @@ const useStyles = (displayName: string, options: any) => {
 
   const { disableAnimations = false, renderer = null, theme = emptyTheme } = context || {}
 
+  const componentVariables = Array.isArray(displayName)
+    ? displayName.map(displayName => theme.componentVariables[displayName])
+    : [theme.componentVariables[displayName]]
+  const componentStyles = Array.isArray(displayName)
+    ? displayName.map(displayName => theme.componentStyles[displayName])
+    : [theme.componentStyles[displayName]]
+
   // Merge inline variables on top of cached variables
   const resolvedVariables = mergeComponentVariables(
-    theme.componentVariables[displayName],
+    ...componentVariables,
     variables,
   )(theme.siteVariables)
-
+  console.log(componentStyles, props)
   // Resolve styles using resolved variables, merge results, allow props.styles to override
   const mergedStyles: ComponentSlotStylesPrepared = mergeComponentStyles(
-    theme.componentStyles[displayName],
+    ...componentStyles,
     { root: design },
     { root: styles },
   )
 
   const styleParam: ComponentStyleFunctionParam = {
-    displayName,
+    displayName: Array.isArray(displayName) ? displayName[0] : displayName,
     props,
     variables: resolvedVariables,
     theme,

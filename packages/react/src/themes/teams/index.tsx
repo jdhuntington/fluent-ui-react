@@ -53,7 +53,30 @@ const teamsTheme: ThemePrepared = createTheme(
   {
     siteVariables,
     componentVariables,
-    componentStyles,
+    componentStyles: {
+      ...componentStyles,
+      MyStatus: {
+        root: ({ props: p }) => ({
+          display: 'inline-flex',
+          background: 'pink',
+          border: '1px',
+          borderRadius: '9999px',
+          height: '10px',
+          width: '10px',
+
+          ...(p.disabled && {
+            background: 'gray',
+          }),
+        }),
+      },
+      SquareStatus: {
+        root: ({ props: p }) => ({
+          ...(p.square && {
+            borderRadius: 0,
+          }),
+        }),
+      },
+    },
     fontFaces,
     staticStyles,
     icons,

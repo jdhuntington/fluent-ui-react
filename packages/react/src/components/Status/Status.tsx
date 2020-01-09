@@ -34,14 +34,20 @@ export interface StatusProps extends UIComponentProps {
 
 const Status = React.forwardRef<HTMLDivElement, WithAsProp<StatusProps>>((props, ref) => {
   const { className, color, icon, size, state, design, styles, variables } = props
+  const { displayName, mapPropsToBehavior, mapPropsToStyles, overrideStyles, shouldForwardProp } =
+    props.__unstable_config || {}
 
   const { rtl }: ProviderContextPrepared = React.useContext(ThemeContext)
-  const [classes, resolvedStyles] = useStyles(Status.displayName, {
+  const magicName = overrideStyles
+    ? displayName || Status.displayName
+    : [Status.displayName, displayName].filter(Boolean)
+  const [classes, resolvedStyles] = useStyles(magicName, {
     className: (Status as any).className,
     mapPropsToStyles: () => ({
       color,
       size,
       state,
+      ...(mapPropsToStyles && mapPropsToStyles(props)),
     }),
     mapInlineToStyles: () => ({
       className,
@@ -52,12 +58,17 @@ const Status = React.forwardRef<HTMLDivElement, WithAsProp<StatusProps>>((props,
     rtl,
   })
   const getA11Props = useAccessibility(props.accessibility, {
-    debugName: Status.displayName,
+    debugName: displayName || Status.displayName,
+    mapPropsToBehavior: mapPropsToBehavior ? () => mapPropsToBehavior(props) : undefined,
     rtl,
   })
   const ElementType = getElementType(props)
-  const unhandledProps = getUnhandledProps((Status as any).handledProps /* TODO */, props)
-
+  const unhandledProps = getUnhandledProps(
+    (Status as any).handledProps /* TODO */,
+    props,
+    shouldForwardProp,
+  )
+  console.log(getA11Props('root', {}))
   return (
     <ElementType {...getA11Props('root', { className: classes.root, ref, ...unhandledProps })}>
       {Icon.create(icon, {
@@ -83,7 +94,7 @@ const Status = React.forwardRef<HTMLDivElement, WithAsProp<StatusProps>>((props,
   size: customPropTypes.size,
   state: PropTypes.oneOf(['success', 'info', 'warning', 'error', 'unknown']),
 }
-;(Status as any).handledProps = Object.keys((Status as any).propTypes)
+;(Status as any).handledProps = [...Object.keys((Status as any).propTypes), '__unstable_config']
 Status.defaultProps = {
   accessibility: statusBehavior,
   as: 'span',
