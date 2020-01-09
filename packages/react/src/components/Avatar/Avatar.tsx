@@ -122,6 +122,7 @@ Avatar.displayName = 'Avatar'
   status: customPropTypes.itemShorthand,
   getInitials: PropTypes.func,
 }
+;(Avatar as any).handledProps = Object.keys((Avatar as any).propTypes)
 Avatar.defaultProps = {
   size: 'medium',
   getInitials(name: string) {
