@@ -1,4 +1,4 @@
-import resolveStylesAndClasses from 'src/utils/resolveStylesAndClasses'
+import resolveStylesAndClasses from '@fluentui/react-bindings/src/styles/resolveStylesAndClasses'
 import { ComponentSlotStylesPrepared } from 'src/themes/types'
 
 describe('resolveStylesAndClasses', () => {

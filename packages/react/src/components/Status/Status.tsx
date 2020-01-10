@@ -34,6 +34,7 @@ export interface StatusProps extends UIComponentProps {
 
 const Status = React.forwardRef<HTMLDivElement, WithAsProp<StatusProps>>((props, ref) => {
   const { className, color, icon, size, state, design, styles, variables } = props
+  // @ts-ignore
   const { displayName, mapPropsToBehavior, mapPropsToStyles, overrideStyles, shouldForwardProp } =
     props.__unstable_config || {}
 
@@ -41,21 +42,30 @@ const Status = React.forwardRef<HTMLDivElement, WithAsProp<StatusProps>>((props,
   const magicName = overrideStyles
     ? displayName || Status.displayName
     : [Status.displayName, displayName].filter(Boolean)
+  // @ts-ignore
+  // @ts-ignore
   const [classes, resolvedStyles] = useStyles(magicName, {
+    // magic name is not cool, too
     className: (Status as any).className,
     mapPropsToStyles: () => ({
       color,
       size,
       state,
-      ...(mapPropsToStyles && mapPropsToStyles(props)),
+      ...(mapPropsToStyles && mapPropsToStyles(props)), // This is not cool
     }),
-    mapInlineToStyles: () => ({
+    mapPropsToInlineStyles: () => ({
       className,
       design,
       styles,
       variables,
     }),
+    // <CallMenu />
+    // <div className="call-menu my-custom-classname" />
     rtl,
+
+    // @ts-ignore
+    __experimental_variant: displayName,
+    __expirimental_overwrite: overrideStyles,
   })
   const getA11Props = useAccessibility(props.accessibility, {
     debugName: displayName || Status.displayName,
@@ -68,6 +78,11 @@ const Status = React.forwardRef<HTMLDivElement, WithAsProp<StatusProps>>((props,
     props,
     shouldForwardProp,
   )
+
+  // 1: shouldHandleProp should work!
+  // 2: Fix typings, no any!
+  // 3: const [] = useComposeConfig()
+
   console.log(getA11Props('root', {}))
   return (
     <ElementType {...getA11Props('root', { className: classes.root, ref, ...unhandledProps })}>

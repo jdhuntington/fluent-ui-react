@@ -60,7 +60,7 @@ const Avatar = React.forwardRef<HTMLDivElement, WithAsProp<AvatarProps>>((props,
     mapPropsToStyles: () => ({
       size,
     }),
-    mapInlineToStyles: () => ({
+    mapPropsToInlineStyles: () => ({
       className,
       design,
       styles,

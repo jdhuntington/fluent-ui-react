@@ -1,7 +1,10 @@
-import { mergeThemeVariables__PROD, mergeThemeVariables__DEV } from 'src/utils/mergeThemes'
+import {
+  mergeThemeVariables__PROD,
+  mergeThemeVariables__DEV,
+} from '@fluentui/react-bindings/src/styles/mergeThemes'
 import * as _ from 'lodash'
 import { withDebugId } from 'src/utils'
-import * as debugEnabled from 'src/utils/debug/debugEnabled'
+import * as debugEnabled from 'src/../../../../../react-bindings/src/styles/debug/debugEnabled'
 
 describe('mergeThemeVariables', () => {
   let originalDebugEnabled

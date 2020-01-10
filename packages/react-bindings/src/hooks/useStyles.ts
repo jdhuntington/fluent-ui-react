@@ -4,26 +4,47 @@ import * as React from 'react'
 import { ThemeContext } from 'react-fela'
 
 import {
+  ComponentSlotStylesPrepared,
+  ComponentStyleFunctionParam,
   emptyTheme,
   mergeComponentStyles,
   mergeComponentVariables,
-} from '@fluentui/react/src/utils/mergeThemes'
-import {
-  ComponentSlotStylesPrepared,
-  ComponentStyleFunctionParam,
-  ProviderContextPrepared,
-} from '@fluentui/react'
-import resolveStylesAndClasses from '@fluentui/react/src/utils/resolveStylesAndClasses'
+} from '@fluentui/styles'
+import { ProviderContextPrepared } from '@fluentui/react'
+import resolveStylesAndClasses from '../styles/resolveStylesAndClasses'
 
-const useStyles = (displayName: string | string[], options: any) => {
-  const className = options.className || 'no-classname-🙉'
-  const rtl = options.rtl || false
-  const props = options.mapPropsToStyles()
-  const { className: userClassName, styles, design, variables } = options.mapInlineToStyles()
+type UseStylesOptions<StyleProps> = {
+  className?: string
+  mapPropsToStyles?: () => StyleProps
+  mapPropsToInlineStyles?: () => InlineStyleProps // Consider better name
+  rtl?: boolean
+}
+
+type InlineStyleProps = {
+  className?: string
+  design?: any // TODO type
+  styles?: any // TODO type
+  variables?: any // TODO type
+}
+
+const useStyles = <StyleProps>(
+  displayName: string | string[],
+  options: UseStylesOptions<StyleProps>,
+) => {
+  const {
+    className = 'no-classname-🙉',
+    mapPropsToStyles = () => ({} as StyleProps),
+    mapPropsToInlineStyles = () => ({} as InlineStyleProps),
+    rtl = false,
+  } = options
 
   const context: ProviderContextPrepared = React.useContext(ThemeContext)
-
   const { disableAnimations = false, renderer = null, theme = emptyTheme } = context || {}
+
+  // TODO: throw if there is no context
+
+  const props = mapPropsToStyles()
+  const { className: userClassName, styles, design, variables } = mapPropsToInlineStyles()
 
   const componentVariables = Array.isArray(displayName)
     ? displayName.map(displayName => theme.componentVariables[displayName])
@@ -37,7 +58,7 @@ const useStyles = (displayName: string | string[], options: any) => {
     ...componentVariables,
     variables,
   )(theme.siteVariables)
-  console.log(componentStyles, props)
+
   // Resolve styles using resolved variables, merge results, allow props.styles to override
   const mergedStyles: ComponentSlotStylesPrepared = mergeComponentStyles(
     ...componentStyles,

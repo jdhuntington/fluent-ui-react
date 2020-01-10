@@ -1,4 +1,5 @@
-import { AnimationProp, ThemePrepared } from '../themes/types'
+import { AnimationProp } from '@fluentui/react' // TODO FIX ME
+import { ThemePrepared } from '@fluentui/styles'
 
 const createAnimationStyles = (animation: AnimationProp, theme: ThemePrepared) => {
   let animationCSSProp = {}

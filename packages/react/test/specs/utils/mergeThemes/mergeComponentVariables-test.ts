@@ -1,10 +1,10 @@
 import {
   mergeComponentVariables__PROD,
   mergeComponentVariables__DEV,
-} from '../../../../src/utils/mergeThemes'
-import * as debugEnabled from 'src/utils/debug/debugEnabled'
+} from '@fluentui/react-bindings/src/styles/mergeThemes'
+import * as debugEnabled from 'src/../../../../../react-bindings/src/styles/debug/debugEnabled'
 import { withDebugId } from 'src/utils'
-import objectKeyToValues from 'src/utils/objectKeysToValues'
+import objectKeyToValues from '@fluentui/react-bindings/src/styles/objectKeysToValues'
 
 describe('mergeComponentVariables', () => {
   let originalDebugEnabled

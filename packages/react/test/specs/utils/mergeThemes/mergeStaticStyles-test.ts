@@ -1,4 +1,4 @@
-import { mergeStaticStyles } from '../../../../src/utils/mergeThemes'
+import { mergeStaticStyles } from '@fluentui/react-bindings/src/styles/mergeThemes'
 
 describe('mergeStaticStyles', () => {
   test('returns a compact array', () => {

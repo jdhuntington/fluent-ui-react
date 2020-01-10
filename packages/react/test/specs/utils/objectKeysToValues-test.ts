@@ -1,4 +1,4 @@
-import objectKeyToValues from 'src/utils/objectKeysToValues'
+import objectKeyToValues from '@fluentui/react-bindings/src/styles/objectKeysToValues'
 
 describe('objectKeyToValues', () => {
   test('values are replaced by key paths', () => {

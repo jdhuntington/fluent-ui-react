@@ -1,4 +1,10 @@
-import { ThemeIconSpec, ThemeIcons, SvgIconSpec, ThemePrepared } from '../types'
+import {
+  createTheme,
+  SvgIconSpec,
+  ThemeIcons,
+  ThemeIconSpec,
+  ThemePrepared,
+} from '@fluentui/styles'
 
 import animations from './animations'
 import * as siteVariables from './siteVariables'
@@ -10,7 +16,6 @@ import staticStyles from './staticStyles'
 import { default as svgIconsAndStyles } from './components/Icon/svg'
 
 import { TeamsSvgIconSpec, SvgIconSpecWithStyles } from './components/Icon/svg/types'
-import { createTheme } from '../createTheme'
 
 const declareSvg = (svgIcon: SvgIconSpec): ThemeIconSpec => ({
   isSvg: true,
@@ -53,30 +58,7 @@ const teamsTheme: ThemePrepared = createTheme(
   {
     siteVariables,
     componentVariables,
-    componentStyles: {
-      ...componentStyles,
-      MyStatus: {
-        root: ({ props: p }) => ({
-          display: 'inline-flex',
-          background: 'pink',
-          border: '1px',
-          borderRadius: '9999px',
-          height: '10px',
-          width: '10px',
-
-          ...(p.disabled && {
-            background: 'gray',
-          }),
-        }),
-      },
-      SquareStatus: {
-        root: ({ props: p }) => ({
-          ...(p.square && {
-            borderRadius: 0,
-          }),
-        }),
-      },
-    },
+    componentStyles,
     fontFaces,
     staticStyles,
     icons,

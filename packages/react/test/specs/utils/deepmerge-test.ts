@@ -1,4 +1,4 @@
-import deepmerge from 'src/utils/deepmerge'
+import deepmerge from '@fluentui/react-bindings/src/styles/deepmerge'
 
 describe('deepmerge', () => {
   test(`always returns an object`, () => {
