@@ -1,14 +1,19 @@
 # Summary
 
-`react-compose` provides a set of tools for creating themable components. The `compose` tool takes a functional component and, given default options and contextual overrides provided through React context, computes injected props including `classes`, `slots`, and `slotProps`. Styles are computed only when encountering unique theme objects per component, resulting in optimized performance.
+`react-theming` provides a set of tools for creating themable
+components. The `createComponent` tool extends unstyled components by
+applying given options and contextual overrides provided through React
+context, computes injected props including `classes`, `slots`, and
+`slotProps`. Styles are computed only when encountering unique theme
+objects per component, resulting in optimized performance.
 
-Example:
+Example usage:
 
-```
-import { SliderBase } from './Slider.base';
-import { compose } from '@fluentui/react-theming';
+```jsx
+import { SliderBase } from 'implementation';
+import { createComponent } from '@fluentui/react-theming';
 
-export const Slider = compose(SliderBase, {
+export const Slider = createComponent(SliderBase, {
   // the themable name of the component
   name: 'Slider'
 
@@ -22,13 +27,13 @@ export const Slider = compose(SliderBase, {
   slots
 });
 
-// Composed components can be recomposed to offer slightly different permutations.
-export const RedSlider = compose(Slider, {
+// Created components can be further extended to alter look and feel.
+export const RedSlider = createComponent(Slider, {
   tokens: { railColor: 'red' }
 });
 ```
 
-Theming can be achieved through applications using a `ThemeProvider` component, also provided in the library:
+Theming is achieved by using the `Provider` component (also provided):
 
 ```tsx
 // Create a theme with a token override for the Slider.
@@ -44,66 +49,64 @@ const theme = createTheme({
 
 // Render the slider using the theme.
 const App = () => (
-  <ThemeProvider theme={theme}>
+  <Provider theme={theme}>
     <Slider />
-  </ThemeProvider>
+  </Provider>
 );
 ```
 
 ## Principles
 
-`compose` follows 3 principles:
+Key principles of `react-theming`:
 
-- Prefer faster components over more flexible components (if a decision between the 2 must be made.)
+- allow any base component following the contract (explained in
+  "createComponent API surface") to be extended (and therefore
+  styled).
+- should be future proof, and not coupled to a specific styling/css implementation
 
-- Decouple theming/styling from implementation in order to ensure the styling approach can be replaced without rewriting the component.
+## Who is `createComponent` for?
 
-- Keep it simple; avoid adding too many concepts for developers to learn.
+### Component authors
 
-## Who is `compose` for?
+Components created with `createComponent` are styleable by end user
+applications, and provide a separation of concerns when adressing
+multiple design systems or styling implementations.
 
-Components created with `compose` are meant for use by anyone.
+### Application authors
 
-`compose` itself is primarily intended for use by component authors; it provides a consistent means of attaching to a "themed context".
+Application authors should find value using `createComponent`, as
+existing library components will be easily extendable, and new
+components can be effortlessly created that tie in to existing themes.
 
-`compose` can also be used by application developers to enable a greater level of customization when the "theme" does not provide enough flexibility.
-
-## When should I use `compose`?
+## When should I use `createComponent`?
 
 - When creating a component that should be themeable.
 - When overriding major details of an existing component. (Explained
-  later in \"Overriding (tokens\|slots) with a new component\".)
+  later in "Overriding (tokens|slots) with a new component".)
 
-## What\'s in a theme?
-
-A Fluent UI theme contains several major sections. At at high level, it
-contains detail about colors, types, effects, spacing, and animation.
-Furthermore, a theme has the ability to override major details about
-each and every component\'s look and feel as well as behavior.
+## What's in a theme?
 
 > TODO: document theme
 
-# Using components created with `compose`
+# Using components created with `createComponent`
 
-There is no requirement around using components build with `compose`. If you use them without a theme, they will render with whichever default token/styling values, if any, are provided.
-
-It is recommended the default styling provide very limited styling, leaving tokens as the preferred method for customizing the component.
+Components created with `createComponent` should exist in the context
+of a `Provider`. All other patterns common to developing with React
+controls should be standard.
 
 ## Styling components with a theme
 
-Default styling and tokens can always be overridden using theme.
-
-> TODO: how would one replace styling completely, instead of overriding it?
+> TODO: document theme
 
 ## Customizing with tokens
 
-Frequently, individual products design needs conflict with that of the
-base style. To accomodate necessary changes, `Tokens` exist to allow easy
-modification of most all aspects of look and feel.
+Frequently, design needs of a specific product conflict with that of
+the base design system. To accomodate necessary changes, `Tokens`
+exist to allow easy modification of most all aspects of look and feel.
 
 A token is a key that corresponds to a value, usually from from the
 applied theme. Examples of tokens might be `fontSize`, `fontFamily`,
-`borderRadius`, `animationDuration`, and `labelHoveredbBackground`.
+`borderRadius`, `animationDuration`, and `labelHoveredBackground`.
 
 ### Setting tokens with a theme
 
@@ -116,7 +119,7 @@ tokens:
 - `fontSize`
 - `backgroundHoverColor`
 
-To override any (or all) of the Button\'s tokens, an object should be
+To override any (or all) of the Button's tokens, an object should be
 provided within the theme under:
 
 ```{.json}
@@ -143,8 +146,7 @@ Tokens are represented by the following:
       "components": {
         "Button": {
           "tokens": {
-            "fontSize": t => t.fonts.base,
-            "backgroundColor": t => t.colors.brand[2]
+            "fontSize": t => t.fonts.base, // pull some value from the theme
           }
         }
       }
@@ -186,7 +188,7 @@ Tokens are represented by the following:
           "tokens": {
             "backgroundHoverColor": {
               dependsOn: ['backgroundColor'],
-              value: ([backgroundColor: Color]) => lighten(backgroundColor)
+              value: ([backgroundColor: Color]) => invert(backgroundColor)
             }
           }
         }
@@ -194,27 +196,46 @@ Tokens are represented by the following:
     }
     ```
 
-### Customizing tokens by creating variants
+### Customizing components with variants
 
-If adjusting all instances of a component with a token override is not
-desirable, then it is possible to create a component variant using
-`compose`.
+`createComponent` supports variants, where a variant represents a new
+prop that implies a set of styles. Examples of expected variants for a
+button might be `circle`, `size`, or `primary`.
 
-For instance, it might be the case that most `Button` instances should
-look a certain way, but `Button` instances in a toolbar should not
-inherit the same tokens.
-
-The solution is to create a component that can apply different tokens,
-but retains the same underlying behavior.
-
-To create a new component that can be targeted separately from the base
-component, simply call `compose` and optionally provide new tokens.
+Variants are specified in the call to `createComponent` along with
+additional tokens and styles. Variant arguments represent the keys in
+the defintion passed to `createComponent`.
 
 ```{.javascript org-language="js"}
-const ToolbarButton = compose(Button, {
-  tokens: {
-    fontSize: t => t.font.small
-  }
+const DeluxeButton = createComponent(Button, {
+  variants: {
+    size: {
+      small: { // used via <DeluxeButton size="small" />
+        tokens: t => {
+          return { fontSize: t.fonts.smallest }
+        }
+      },
+      large: { // used via <DeluxeButton size="large" />
+        tokens: t => {
+          return { fontSize: t.fonts.largest }
+        }
+      },
+    },
+    primary: {
+      true: { // used via <DeluxeButton primary />
+        tokens: t => {
+          return { shadowColor: t.accents[1]; }
+        },
+        styles: tokens => {
+          return {
+            root: {
+              boxShadow: "5px 5px #{tokens.shadowColor}"
+            }
+          }
+        }
+      }
+    }
+  },
 });
 ```
 
@@ -252,7 +273,8 @@ import { MyLabel } from 'my-library';
 
 ### Overriding slots with a new component
 
-`compose` can also specify slot assignments directly.
+`createComponent` can also specify slot assignments directly. (This is
+the expected usage for component libraries.)
 
 ```{.javascript org-language="js"}
 import { MyLabel } from 'my-library';
@@ -264,15 +286,28 @@ const MyCheckbox = compse(Checkbox, {
 });
 ```
 
-# Creating a component meant for use with `compose`
+# Creating a base component
 
-Components that work well with compose consist of 2 parts: an unstlyled
-based component and a composed layer that glues look and feel to the
-base component.
+A base component is an unstyled component that contains desired behaviors.
 
-This section first describes how tokens and styles are calculated, then
-explains what an unstyled base component must do in order to be a good
-citizen in the compose world.
+A base component should anticipate 2 special `props` and behave accordingly.
+
+## `props.slots`
+
+`slots` defines the control that should be rendered in each
+slot. The outermost component should always be named `root`, and other
+child components should be given predictable names and documented.
+
+## `props.slotProps`
+
+There will be an entry in `slotProps` for each accompanying `slot`.
+The base component is responsible for merging user-provided props with
+`slotProps`, then passing them to the according `slot` for rendering.
+
+# Theming a component
+
+In order to apply a theme to a component, each base component should
+be wrapped by `createComponent` along with accompanying styling.
 
 ## Understanding tokens
 
@@ -290,15 +325,14 @@ Examples:
 - `backgroundColor`
 - `labelBorderDisabled`
 
-TODO: Exhaustive description of token declarations
-
 ## Understanding styles
 
 After evaluating tokens, the tokens are passed to a `style` function.
 The `style` function should return an object which can be rendered by
-`JSS`.
+the CSS renderer chosen for the design system. Likely CSS renderers
+include `Fela`, `mergeStyles`, and `JSS`.
 
-Example:
+Example targeting `JSS`:
 
 ```{.javascript org-language="js"}
 const styles = (tokens: MyComponentTokens) => {
@@ -327,7 +361,7 @@ TODO: examples of more slots
 
 ## Writing the base component
 
-Any functional component can be used with `compose`. However, there are
+Any functional component can be used with `createComponent`. However, there are
 several conventions that should be respected in order to make the user
 experience predictable.
 
@@ -335,33 +369,12 @@ A good base component deviates from a run-of-the-mill component in 3
 ways:
 
 - It should have no built-in opinion of styling. When styled via
-  `compose`, class names will be passed in via `slotProps` to provide
+  `createComponent`, class names will be passed in via `slotProps` to provide
   styling.
 - It accepts a prop named `slots`, which define the component to use
   for subcomponents.
 - It accepts a prop named `slotProps`, which will be handed off to
   subcomponents.
-
-### States
-
-Each component should ennumerate the possible set of states as a set of
-boolean flags.
-
-For instance, a checkbox might declare these flags:
-
-- `checked`
-- `readonly`
-- `disabled`
-- `labeled`
-
-**NB:** States should be **boolean** values only.
-
-These states affect what classNames are selected to render on the root
-element of a component.
-
-For instance, in the case of a checkbox, the previous states would cause
-those selectors to appear on the root making them available to all
-downlevel slots.
 
 ### Slots
 
