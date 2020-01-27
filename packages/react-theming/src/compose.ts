@@ -2,15 +2,19 @@ import { useTheme } from './themeContext';
 import { resolveTokens } from './resolveTokens';
 import jss from 'jss';
 import { ITheme } from './theme.types';
+import { element } from 'prop-types';
 
 type Options = ComposeOptions[];
 type SlotsAssignment = any;
+type VariantOptions = { tokens?: any };
+type Variants = { [variantName: string]: VariantOptions };
 
 interface ComposeOptions {
   name?: string;
   slots?: any;
   tokens?: any;
   styles?: any;
+  variants?: Variants;
 }
 
 export interface Composeable {
@@ -26,6 +30,7 @@ export type ForwardRefComponent<TProps, TElement> = React.FunctionComponent<
 interface ComposedFunctionComponent<TProps> extends React.FunctionComponent<TProps> {
   __optionsSet?: ComposeOptions[];
   __directRender?: React.FunctionComponent<TProps>;
+  variants?: Variants;
 
   // Needed for components using forwardRef (See https://github.com/facebook/react/issues/12453).
   render?: React.FunctionComponent<TProps>;
@@ -60,7 +65,7 @@ export const _composeFactory = (useThemeHook: any = useTheme) => {
 
       return renderFn({
         ...props,
-        classes: _getClasses(componentName, theme, classNamesCache, optionsSet),
+        classes: _getClasses(componentName, theme, classNamesCache, optionsSet, props),
         slots,
       });
     };
@@ -70,6 +75,7 @@ export const _composeFactory = (useThemeHook: any = useTheme) => {
     }
 
     Component.propTypes = baseComponent.propTypes;
+    Component.variants = options.variants;
 
     Component.__optionsSet = optionsSet;
     Component.__directRender = renderFn;
@@ -135,8 +141,20 @@ const _getClasses = (
   theme: ITheme,
   classNamesCache: WeakMap<any, any>,
   optionsSet: any[],
+  props: any,
 ) => {
   let classes = classNamesCache.get(theme);
+
+  optionsSet.forEach((options: any) => {
+    if (options.variants) {
+      Object.keys(options.variants).forEach(variantName => {
+        if (props[variantName] && options.variants[variantName].tokens) {
+          // these are the tokens for the set variants
+          options.variants[variantName].tokens();
+        }
+      });
+    }
+  });
 
   if (!classes) {
     const tokens = resolveTokens(
