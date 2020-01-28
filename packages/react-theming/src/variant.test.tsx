@@ -1,6 +1,8 @@
 import React from 'react';
-import { _composeFactory } from './compose';
+
+import { _composeFactory, _tokensFromOptions } from './compose';
 import { ITheme } from './theme.types';
+import { Variant } from './variant';
 
 const compose = _composeFactory(() => makeBlankTheme());
 
@@ -24,30 +26,63 @@ const baseComponent = () => {
 
 describe('compose', () => {
   describe('variants', () => {
-    it('allows variants to be defined', () => {
-      const component = compose(baseComponent(), {
-        variants: { test: {} },
-      });
-      expect((component as any).variants).toEqual({ test: {} });
-    });
-
     describe('tokens', () => {
       it('does not resolve tokens when variant not rendered', () => {
         const myTokens = jest.fn();
         const component = compose(baseComponent(), {
-          variants: { test: { tokens: myTokens } },
+          variants: { test: Variant.boolean(myTokens) },
         });
         (component as any)({ test: false });
         expect(myTokens).not.toHaveBeenCalled();
       });
 
-      it('resolves tokens', () => {
-        const myTokens = jest.fn();
+      it.skip('resolves tokens', () => {
+        const myTokens = { test: () => jest.fn() };
         const component = compose(baseComponent(), {
-          variants: { test: { tokens: myTokens } },
+          variants: { test: Variant.boolean(myTokens) },
         });
         (component as any)({ test: true });
         expect(myTokens).toHaveBeenCalled();
+      });
+
+      it.skip('renders styles with token values', () => {
+        let called = false;
+        const myStyles = (tokens: any) => {
+          expect(tokens).toEqual({ foo: 'bar' });
+          called = true;
+          return {};
+        };
+        const myVariantTokens = {
+          foo: () => 'bar',
+        };
+        const component = compose(baseComponent(), {
+          styles: myStyles,
+          tokens: {
+            foo: () => 'foo',
+          },
+          variants: { test: Variant.boolean(myVariantTokens) },
+        });
+        (component as any)({ test: true });
+        expect(called).toBeTruthy();
+      });
+    });
+
+    describe('_tokensFromOptions', () => {
+      it('returns all tokens from options', () => {
+        expect(_tokensFromOptions([{ tokens: { a: 'b' } }, { tokens: { c: 'd' } }], {})).toEqual([
+          { a: 'b' },
+          { c: 'd' },
+        ]);
+      });
+
+      it('does not return tokens from unused props', () => {
+        const options = [{ variants: { a: Variant.boolean({ x: 'x' }) } }];
+        expect(_tokensFromOptions(options, { x: false })).toEqual([{}]);
+      });
+
+      it('returns options from used props', () => {
+        const options = [{ variants: { a: Variant.boolean({ x: 'x' }) } }];
+        expect(_tokensFromOptions(options, { a: true })).toEqual([{ x: 'x' }]);
       });
     });
   });

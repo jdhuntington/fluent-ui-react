@@ -2,12 +2,11 @@ import { useTheme } from './themeContext';
 import { resolveTokens } from './resolveTokens';
 import jss from 'jss';
 import { ITheme } from './theme.types';
-import { element } from 'prop-types';
+import { Variant } from './variant';
 
 type Options = ComposeOptions[];
 type SlotsAssignment = any;
-type VariantOptions = { tokens?: any };
-type Variants = { [variantName: string]: VariantOptions };
+type Variants = { [variantName: string]: Variant };
 
 interface ComposeOptions {
   name?: string;
@@ -136,6 +135,26 @@ const _mergeOptions = (options: ComposeOptions, baseOptions?: Options): Options 
   return optionsSet;
 };
 
+/**
+ * _tokensFromOptions returns the accurate set of tokens
+ * based on the currently rendered props.
+ *
+ * @internal
+ *
+ * @param options A set of options
+ * @param props Props for this render
+ */
+export const _tokensFromOptions = (options: any[], props: any) => {
+  return options.map(o => {
+    let result = o.tokens || {};
+    Object.keys(o.variants || {}).forEach(variantName => {
+      const v: Variant = o.variants[variantName];
+      result = { ...result, ...v.tokens(props[variantName]) };
+    });
+    return result;
+  });
+};
+
 const _getClasses = (
   name: string | undefined,
   theme: ITheme,
@@ -143,25 +162,10 @@ const _getClasses = (
   optionsSet: any[],
   props: any,
 ) => {
-  let classes = classNamesCache.get(theme);
-
-  optionsSet.forEach((options: any) => {
-    if (options.variants) {
-      Object.keys(options.variants).forEach(variantName => {
-        if (props[variantName] && options.variants[variantName].tokens) {
-          // these are the tokens for the set variants
-          options.variants[variantName].tokens();
-        }
-      });
-    }
-  });
+  let classes = null; // classNamesCache.get(theme);
 
   if (!classes) {
-    const tokens = resolveTokens(
-      name,
-      theme,
-      optionsSet.map(o => o.tokens || {}),
-    );
+    const tokens = resolveTokens(name, theme, _tokensFromOptions(optionsSet, props));
     let styles: any = {};
 
     optionsSet.forEach((options: any) => {

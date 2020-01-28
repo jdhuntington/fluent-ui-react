@@ -1,5 +1,6 @@
 import { ITheme } from './theme.types';
 
+export type TokenDictShorthand = { [name: string]: any };
 type TokenDict = { [name: string]: IToken };
 
 interface IToken {
